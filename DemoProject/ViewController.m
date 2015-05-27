@@ -6,6 +6,61 @@
 //  Copyright (c) 2015 mawaqaa. All rights reserved.
 //
 
+
+/*
+ 
+ Use this for AsyncImageView
+ 
+ NSString * imgUrlString = [[tabledata objectAtIndex:indexPath.row] valueForKey:@"image"];
+ if ([self isValid:[[tabledata objectAtIndex:indexPath.row] valueForKey:@"image"]])
+ {
+ // imgUrlString = [OfferDic objectForKey:@"Images"];
+ if (![imgUrlString hasPrefix:@"http"])
+ {
+ imgUrlString = [NSString stringWithFormat:@"http://%@",imgUrlString];
+ }
+ }
+ [[AsyncImageLoader sharedLoader] cancelLoadingImagesForTarget:cell.mImageView];
+ NSURL *url = [NSURL URLWithString:imgUrlString];
+ ((AsyncImageView *)cell.mImageView).imageURL = url;
+ 
+ 
+ -(BOOL)isValid:(id)sender
+ {
+ BOOL status = NO;
+ if ((sender!=nil)&&(![sender isEqual:[NSNull null]]))
+ {
+ status = YES;
+ }
+ return status;
+ }
+ 
+ 
+ // Sipnner and URLConnetion Asyncronuc
+ UIActivityIndicatorView *indicator = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+ indicator.frame = CGRectMake(0.0, 0.0, 200.0, 200.0);
+ indicator.center = self.view.center;
+ [self.tableView addSubview:indicator];
+ [indicator bringSubviewToFront:self.view];
+ [UIApplication sharedApplication].networkActivityIndicatorVisible = TRUE;
+ 
+ 
+ //   self.navigationController.navigationBarHidden = YES;
+ [indicator startAnimating];
+ NSURLRequest * req = [NSURLRequest requestWithURL:[NSURL URLWithString:@"http://dairam.com/index.php?route=api/bestseller/list&language=1&currency=KWD"]];
+ [NSURLConnection sendAsynchronousRequest:req queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
+ NSDictionary * json = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+ 
+ tabledata = [json objectForKey:@"products"];
+ [self.tableView reloadData];
+ NSLog(@"the output  array is %@",tabledata);
+ [indicator stopAnimating];
+ [indicator setHidden:YES];
+ [UIApplication sharedApplication].networkActivityIndicatorVisible = FALSE;
+ }];
+
+ 
+ */
 #import "ViewController.h"
 #import "TableViewCell.h"
 #import "AFNetworking.h"
@@ -27,6 +82,15 @@
     // Do any additional setup after loading the view, typically from a nib.
    /* tableData = [NSArray arrayWithObjects:@"Egg Benedict", @"Mushroom Risotto", @"Full Breakfast", @"Hamburger", @"Ham and Egg Sandwich", @"Creme Brelee", @"White Chocolate Donut", @"Starbucks Coffee", @"Vegetable Curry", @"Instant Noodle with Egg", @"Noodle with BBQ Pork", @"Japanese Noodle with Pork", @"Green Tea", @"Thai Shrimp Cake", @"Angry Birds Cake", @"Ham and Cheese Panini", nil];*/
     
+    UIActivityIndicatorView * indicatorView = [[UIActivityIndicatorView alloc]init];
+    indicatorView.frame = CGRectMake(0, 0, 200, 200);
+    indicatorView.center = self.view.center;
+    [self.mTableView addSubview:indicatorView];
+    [indicatorView bringSubviewToFront:self.view];
+  
+    [UIApplication sharedApplication].networkActivityIndicatorVisible = TRUE;
+
+      [indicatorView startAnimating];
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     // manager.securityPolicy.allowInvalidCertificates = YES;
     NSDictionary *parameters = @{@"lang_key": @"en"};
@@ -39,7 +103,10 @@
         tableData = [responseObject objectForKey:@"List"];
         [self.mTableView reloadData];
         
+        [UIApplication sharedApplication].networkActivityIndicatorVisible = FALSE;
         
+        [indicatorView stopAnimating];
+        [indicatorView setHidden:YES];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error: %@", error);
     }];
@@ -48,7 +115,15 @@
    
   //  NSLog(@"TableData %@",tableData);
 }
+- (void)viewWillAppear:(BOOL)animated {
+      [self.navigationController setNavigationBarHidden:YES animated:animated];
+    [super viewWillAppear:animated];
+}
 
+- (void)viewWillDisappear:(BOOL)animated {
+     [self.navigationController setNavigationBarHidden:NO animated:animated];
+    [super viewWillDisappear:animated];
+}
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
@@ -114,6 +189,12 @@
                                    } failure:nil];
     
     return cell;
+}
+
+-(UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section
+{
+ UIView * new = [[UIView alloc]initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 10)];
+  return new;
 }
 
 @end
