@@ -184,7 +184,7 @@
                                    success:^(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image) {
                                        
                                        weakCell.imageView.image = image;
-                                       [weakCell setNeedsLayout];
+                                       [weakCell layoutSubviews];
                                        
                                    } failure:nil];
     
