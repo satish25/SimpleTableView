@@ -70,8 +70,9 @@
 @interface ViewController ()
 {
 
-   NSArray *tableData;
+   NSMutableArray *tableData;
     NSMutableData * responseData;
+    NSMutableArray * mArray;
 }
 @end
 
@@ -80,40 +81,71 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
-   /* tableData = [NSArray arrayWithObjects:@"Egg Benedict", @"Mushroom Risotto", @"Full Breakfast", @"Hamburger", @"Ham and Egg Sandwich", @"Creme Brelee", @"White Chocolate Donut", @"Starbucks Coffee", @"Vegetable Curry", @"Instant Noodle with Egg", @"Noodle with BBQ Pork", @"Japanese Noodle with Pork", @"Green Tea", @"Thai Shrimp Cake", @"Angry Birds Cake", @"Ham and Cheese Panini", nil];*/
+
+    [self callingService];
+    
+    UIRefreshControl * refreshControl = [[UIRefreshControl alloc]init];
+    [refreshControl addTarget:self action:@selector(refresh:) forControlEvents:UIControlEventValueChanged];
+    [self.mTableView addSubview:refreshControl];
+    
+}
+
+
+- (void)refresh:(UIRefreshControl *)refreshControl
+{
+   /* if (tableData.count <= [mArray count]-1) {
+     
+        if (tableData.count+1%3 == 0) {
+            [self.mTableView reloadData];
+            [refreshControl endRefreshing];
+            return;
+        }else
+        {
+            [tableData addObject:[mArray subarrayWithRange:NSMakeRange(tableData.count, tableData.count-1)]];
+            [self.mTableView reloadData];
+        }
+    }*/
+
+    [self.mTableView reloadData];
+    [refreshControl endRefreshing];
+
+}
+
+-(void)callingService
+{
     
     UIActivityIndicatorView * indicatorView = [[UIActivityIndicatorView alloc]init];
     indicatorView.frame = CGRectMake(0, 0, 200, 200);
     indicatorView.center = self.view.center;
     [self.mTableView addSubview:indicatorView];
     [indicatorView bringSubviewToFront:self.view];
-  
+    
     [UIApplication sharedApplication].networkActivityIndicatorVisible = TRUE;
-
-      [indicatorView startAnimating];
+    
+    [indicatorView startAnimating];
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     // manager.securityPolicy.allowInvalidCertificates = YES;
     NSDictionary *parameters = @{@"lang_key": @"en"};
     [manager setRequestSerializer:[AFJSONRequestSerializer serializer]];
     [manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
     [manager POST:@"http://kipcoadmin.mawaqaademo.com/service/API.svc/Category" parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject)
-    {
-        NSLog(@"JSON: %@", responseObject);
-        
-        tableData = [responseObject objectForKey:@"List"];
-        [self.mTableView reloadData];
-        NSLog(@"JSON tableData: %@", tableData);
-        [UIApplication sharedApplication].networkActivityIndicatorVisible = FALSE;
-        
-        [indicatorView stopAnimating];
-        [indicatorView setHidden:YES];
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Error: %@", error);
-    }];
-    
-    
-   
-  //  NSLog(@"TableData %@",tableData);
+     {
+         NSLog(@"JSON: %@", responseObject);
+         
+         mArray = [[responseObject objectForKey:@"List"]mutableCopy];
+         tableData = [[NSMutableArray alloc]init];
+        // [tableData arrayByAddingObject:[mArray subarrayWithRange:NSMakeRange(0, 3)]];
+              [tableData addObjectsFromArray:mArray];
+         [self.mTableView reloadData];
+         NSLog(@"JSON tableData: %@", tableData);
+         [UIApplication sharedApplication].networkActivityIndicatorVisible = FALSE;
+         
+         [indicatorView stopAnimating];
+         [indicatorView setHidden:YES];
+     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+         NSLog(@"Error: %@", error);
+     }];
+
 }
 - (void)viewWillAppear:(BOOL)animated {
       [self.navigationController setNavigationBarHidden:YES animated:animated];
