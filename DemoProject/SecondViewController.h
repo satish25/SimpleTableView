@@ -2,8 +2,8 @@
 //  SecondViewController.h
 //  DemoProject
 //
-//  Created by satheesh on 5/27/15.
-//  Copyright (c) 2015 mawaqaa. All rights reserved.
+//  Created by Satish on 5/27/15.
+//  Copyright (c) 2015 Satish. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
